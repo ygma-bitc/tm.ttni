@@ -12,16 +12,17 @@ Provides an open-source teal module and a reusable table builder for Time to Nex
 Useful links:
 \itemize{
   \item \url{https://github.com/ygma-bitc/tm.ttni}
+  \item \url{https://ygma-bitc.github.io/tm.ttni/}
   \item Report bugs at \url{https://github.com/ygma-bitc/tm.ttni/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Y.G. Ma \email{ygma@users.noreply.github.com}
+\strong{Maintainer}: Y.G. Ma \email{ygma0292@gmail.com}
 
 Authors:
 \itemize{
-  \item Y.G. Ma \email{ygma@users.noreply.github.com}
+  \item Y.G. Ma \email{ygma0292@gmail.com}
 }
 
 }
