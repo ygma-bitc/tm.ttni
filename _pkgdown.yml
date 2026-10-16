@@ -1,0 +1,33 @@
+url: https://ygma-bitc.github.io/tm.ttni/
+destination: pkgdown
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [reference, news]
+    right: [github]
+
+reference:
+  - title: Data Preparation
+    contents:
+      - prep_ttni_data
+      - standardize_adsl
+      - standardize_adtte
+      - derive_mock_adtte
+  - title: Tables
+    contents:
+      - build_ttni_table
+      - detect_arm_design
+      - ttni_surv_time_choices
+      - default_ttni_surv_stats
+      - default_ttni_event_levels
+      - default_ttni_censor_levels
+      - default_ttni_footnotes
+  - title: Teal Modules
+    contents:
+      - tm_t_ttni
+  - title: Synthetic Data
+    contents:
+      - make_synthetic_ttni_data

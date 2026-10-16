@@ -13,7 +13,7 @@ Description: Provides an open-source teal module and a reusable table builder
     and log-rank p-value are calculated only when exactly two treatment arms
     are present. The builder can be called without launching Shiny.
 License: MIT + file LICENSE
-URL: https://github.com/ygma-bitc/tm.ttni
+URL: https://github.com/ygma-bitc/tm.ttni, https://ygma-bitc.github.io/tm.ttni/
 BugReports: https://github.com/ygma-bitc/tm.ttni/issues
 Depends:
     R (>= 4.1)
@@ -33,6 +33,7 @@ Imports:
 Suggests:
     haven,
     knitr,
+    pkgdown,
     pkgload,
     random.cdisc.data,
     rmarkdown,

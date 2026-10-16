@@ -1,5 +1,8 @@
 # tm.ttni
 
+[![R-CMD-check](https://github.com/ygma-bitc/tm.ttni/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ygma-bitc/tm.ttni/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/ygma-bitc/tm.ttni/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/ygma-bitc/tm.ttni/actions/workflows/pkgdown.yaml)
+
 Teal module and reusable table builder for **Time to Next Intervention (TTNI)** and related time-to-event endpoints.
 
 TTNI is a time-to-event efficacy endpoint (time to next anticancer intervention), distinct from safety incidence endpoints (such as TEAE/OSEI).
