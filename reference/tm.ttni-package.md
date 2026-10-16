@@ -14,12 +14,14 @@ Useful links:
 
 - <https://github.com/ygma-bitc/tm.ttni>
 
+- <https://ygma-bitc.github.io/tm.ttni/>
+
 - Report bugs at <https://github.com/ygma-bitc/tm.ttni/issues>
 
 ## Author
 
-**Maintainer**: Y.G. Ma <ygma@users.noreply.github.com>
+**Maintainer**: Y.G. Ma <ygma0292@gmail.com>
 
 Authors:
 
-- Y.G. Ma <ygma@users.noreply.github.com>
+- Y.G. Ma <ygma0292@gmail.com>
