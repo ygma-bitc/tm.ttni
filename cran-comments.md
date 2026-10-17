@@ -12,7 +12,7 @@ There was 1 NOTE:
 
 * checking CRAN incoming feasibility ... NOTE
 
-  Maintainer: Y.G. Ma <ygma0292@gmail.com>
+  Maintainer: Y.G. Ma <ygma0929@gmail.com>
 
   New submission
 

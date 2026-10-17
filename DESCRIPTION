@@ -3,7 +3,7 @@ Title: Teal Module for Time-to-Next-Intervention and Related TTE Tables
 Version: 0.1.0
 Authors@R: person(
     "Y.G.", "Ma",
-    email = "ygma0292@gmail.com",
+    email = "ygma0929@gmail.com",
     role = c("aut", "cre")
   )
 Description: Provides an open-source teal module and a reusable table builder
