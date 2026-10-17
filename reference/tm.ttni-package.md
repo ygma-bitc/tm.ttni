@@ -20,8 +20,8 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Y.G. Ma <ygma0292@gmail.com>
+**Maintainer**: Y.G. Ma <ygma0929@gmail.com>
 
 Authors:
 
-- Y.G. Ma <ygma0292@gmail.com>
+- Y.G. Ma <ygma0929@gmail.com>
