@@ -103,8 +103,36 @@ Layer 1  Arm design     detect_arm_design()
 Layer 2  Data adapters  standardize_adsl() / standardize_adtte()
 Layer 3  Data prep      prep_ttni_data()   # empty result is not an error
 Layer 4  Table builder  build_ttni_table(prepped = ...)
-Layer 5  UI / Server    data_extract PARAMCD, shinyvalidate, Show R Code
+Layer 5  UI / Server    teal.picks PARAMCD, group, population; shinyvalidate, Show R Code
 Layer 6  Entry point    tm_t_ttni() → teal::module()
+```
+
+PARAMCD, the treatment / group column, and the population flag are
+`teal.picks` selectors. PARAMCD uses `values()` on a fixed `PARAMCD`
+column (default `TTNI`). Group and population use `variables()` with
+`multiple = FALSE` on `adsl_name` (defaults `TRT01A`, and `SAFFL` /
+`ITTFL`). The reference arm, landmarks, Total, follow-up, and statistic
+checkboxes stay ordinary Shiny inputs. Legacy `choices_selected`
+(PARAMCD) and character column vectors (group and population) are still
+accepted and signal a deprecation warning.
+
+``` r
+
+tm_t_ttni(
+  cat = teal.picks::picks(
+    teal.picks::datasets("ADTTE", "ADTTE"),
+    teal.picks::variables("PARAMCD", "PARAMCD", multiple = FALSE, fixed = TRUE),
+    teal.picks::values(c("TTNI", "OS"), "TTNI", multiple = FALSE)
+  ),
+  group_vars = teal.picks::picks(
+    teal.picks::datasets("ADSL", "ADSL"),
+    teal.picks::variables(c("TRT01A", "SEX"), "TRT01A", multiple = FALSE)
+  ),
+  population_var = teal.picks::picks(
+    teal.picks::datasets("ADSL", "ADSL"),
+    teal.picks::variables(c("SAFFL", "ITTFL"), "SAFFL", multiple = FALSE)
+  )
+)
 ```
 
 The server returns `table`, `prepped_data`, `no_data`, and
