@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
   library(shiny)
   library(teal)
   library(teal.data)
-  library(teal.transform)
+  library(teal.picks)
   library(tm.ttni)
 })
 
@@ -90,30 +90,60 @@ load_random_cdisc_data <- function() {
   list(ADSL = adsl, ADTTE = adtte, source = "random.cdisc.data")
 }
 
-group_vars_from_adsl <- function(adsl) {
-  candidate_group_vars <- c(
-    "Actual Treatment" = "TRT01A",
-    "Country" = "COUNTRY",
-    "Race" = "RACE",
-    "Sex" = "SEX"
-  )
-  keep <- candidate_group_vars[candidate_group_vars %in% names(adsl)]
+group_picks_from_adsl <- function(adsl, dataname = "ADSL") {
+  candidate <- c("TRT01A", "COUNTRY", "RACE", "SEX")
+  keep <- candidate[candidate %in% names(adsl)]
   if (length(keep) == 0L) {
-    keep <- c("Actual Treatment" = "TRT01A")
+    keep <- "TRT01A"
   }
-  keep
+  teal.picks::picks(
+    teal.picks::datasets(choices = dataname, selected = dataname),
+    teal.picks::variables(
+      choices = keep,
+      selected = keep[[1L]],
+      multiple = FALSE
+    )
+  )
 }
 
-param_choices <- function(adtte, selected = NULL, dataname = "ADTTE") {
-  choices <- teal.transform::value_choices(
-    data = dataname,
-    var_choices = "PARAMCD",
-    var_label = "PARAM"
-  )
-  if (is.null(selected) || !selected %in% unique(as.character(adtte$PARAMCD))) {
-    selected <- as.character(adtte$PARAMCD[[1L]])
+population_picks <- function(dataname = "ADSL", selected = "SAFFL") {
+  choices <- c("SAFFL", "ITTFL")
+  if (!selected %in% choices) {
+    selected <- choices[[1L]]
   }
-  teal.transform::choices_selected(choices = choices, selected = selected)
+  teal.picks::picks(
+    teal.picks::datasets(choices = dataname, selected = dataname),
+    teal.picks::variables(
+      choices = choices,
+      selected = selected,
+      multiple = FALSE
+    )
+  )
+}
+
+param_picks <- function(adtte, selected = NULL, dataname = "ADTTE") {
+  choices <- unique(as.character(adtte$PARAMCD))
+  choices <- choices[!is.na(choices) & nzchar(choices)]
+  if (length(choices) == 0L) {
+    choices <- "TTNI"
+  }
+  if (is.null(selected) || !selected %in% choices) {
+    selected <- choices[[1L]]
+  }
+  teal.picks::picks(
+    teal.picks::datasets(choices = dataname, selected = dataname),
+    teal.picks::variables(
+      choices = "PARAMCD",
+      selected = "PARAMCD",
+      multiple = FALSE,
+      fixed = TRUE
+    ),
+    teal.picks::values(
+      choices = choices,
+      selected = selected,
+      multiple = FALSE
+    )
+  )
 }
 
 make_tte_module <- function(label,
@@ -128,21 +158,13 @@ make_tte_module <- function(label,
     label = label,
     adsl_name = adsl_name,
     tte_name = tte_name,
-    cat = teal.transform::choices_selected(
-      choices = teal.transform::value_choices(
-        data = tte_name,
-        var_choices = "PARAMCD",
-        var_label = "PARAM"
-      ),
-      selected = selected %||% as.character(adtte$PARAMCD[[1L]])
-    ),
-    group_vars = group_vars_from_adsl(adsl),
+    cat = param_picks(adtte, selected = selected, dataname = tte_name),
+    group_vars = group_picks_from_adsl(adsl, dataname = adsl_name),
+    population_var = population_picks(dataname = adsl_name),
     timepoints = timepoints,
     show_total = show_total
   )
 }
-
-`%||%` <- function(x, y) if (is.null(x)) y else x
 
 real_adsl <- pick_object("ADSL", "adsl")
 real_adtte <- pick_object("ADTTE", "adtte", "ADAETTE", "adaette")

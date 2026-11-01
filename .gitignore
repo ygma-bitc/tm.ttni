@@ -21,3 +21,4 @@ data-raw/*.csv
 .env.*
 docs/
 pkgdown/
+*manuscript

@@ -1,0 +1,350 @@
+#' Drop the teal.picks warning about an eager `selected` and delayed `choices`.
+#'
+#' The default PARAMCD pick stores `paramcd` as `selected` and lets `values()`
+#' resolve the remaining levels from the column at runtime.
+#'
+#' @keywords internal
+#' @noRd
+muffle_pick_delayed <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (inherits(w, "pick_delayed")) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
+
+#' Default single-PARAMCD [`teal.picks::picks`] object.
+#'
+#' `datasets` is `tte_name`. `variables` is fixed to `PARAMCD`.
+#' `values$selected` is `paramcd`, with `multiple = FALSE` on both steps.
+#'
+#' @keywords internal
+#' @noRd
+default_paramcd_picks <- function(tte_name, paramcd) {
+  checkmate::assert_string(tte_name)
+  checkmate::assert_string(paramcd)
+  muffle_pick_delayed(
+    teal.picks::picks(
+      teal.picks::datasets(choices = tte_name, selected = tte_name),
+      teal.picks::variables(
+        choices = "PARAMCD",
+        selected = "PARAMCD",
+        multiple = FALSE,
+        fixed = TRUE
+      ),
+      teal.picks::values(selected = paramcd, multiple = FALSE)
+    )
+  )
+}
+
+
+#' Keep a caller-supplied picks object on the single-value PARAMCD contract.
+#'
+#' @keywords internal
+#' @noRd
+ensure_paramcd_picks <- function(x, tte_name, paramcd) {
+  variables <- x$variables
+  values <- x$values
+  if (is.null(variables)) {
+    variables <- teal.picks::variables(
+      choices = "PARAMCD",
+      selected = "PARAMCD",
+      multiple = FALSE,
+      fixed = TRUE
+    )
+  }
+  if (is.null(values)) {
+    values <- muffle_pick_delayed(
+      teal.picks::values(selected = paramcd, multiple = FALSE)
+    )
+  }
+  if (!identical(attr(values, "multiple", exact = TRUE), FALSE)) {
+    stop(
+      "`multiple` metadata does not match the requirement for `cat`.",
+      " Please set multiple = FALSE in the picks object.",
+      call. = FALSE
+    )
+  }
+  if (!is.null(x$datasets) && !is.null(x$values) && !is.null(x$variables)) {
+    return(x)
+  }
+  datasets <- x$datasets
+  if (is.null(datasets)) {
+    datasets <- teal.picks::datasets(choices = tte_name, selected = tte_name)
+  }
+  teal.picks::picks(datasets, variables, values)
+}
+
+
+#' Convert a legacy `choices_selected` PARAMCD spec into picks.
+#'
+#' Only the pieces this module needs are kept: one dataset (`tte_name`),
+#' one variable (the `var_choices` attribute, otherwise `PARAMCD`), and one
+#' selected value. Delayed choices stay delayed so the levels still come
+#' from the data column.
+#'
+#' @keywords internal
+#' @noRd
+choices_selected_to_paramcd_picks <- function(x, tte_name) {
+  selected <- as.character(unlist(x$selected, use.names = FALSE))
+  selected <- selected[!is.na(selected) & nzchar(selected)]
+  if (length(selected) != 1L) {
+    stop("`cat` must select exactly one PARAMCD.", call. = FALSE)
+  }
+
+  variable_name <- attr(x$choices, "var_choices", exact = TRUE)
+  if (is.null(variable_name) || !length(variable_name)) {
+    variable_name <- "PARAMCD"
+  }
+  variable_name <- as.character(variable_name[[1L]])
+  fixed <- isTRUE(x$fixed)
+
+  if (is.null(x$choices) || inherits(x$choices, "delayed_data")) {
+    vals <- muffle_pick_delayed(
+      teal.picks::values(selected = selected, multiple = FALSE, fixed = fixed)
+    )
+  } else {
+    choices <- unique(as.character(x$choices))
+    choices <- choices[!is.na(choices) & nzchar(choices)]
+    if (!selected %in% choices) {
+      choices <- c(selected, choices)
+    }
+    vals <- teal.picks::values(
+      choices = choices,
+      selected = selected,
+      multiple = FALSE,
+      fixed = fixed
+    )
+  }
+
+  teal.picks::picks(
+    teal.picks::datasets(choices = tte_name, selected = tte_name),
+    teal.picks::variables(
+      choices = variable_name,
+      selected = variable_name,
+      multiple = FALSE,
+      fixed = TRUE
+    ),
+    vals
+  )
+}
+
+
+#' One column on one dataset, single selection.
+#'
+#' A single choice is fixed by `teal.picks`. Several choices stay switchable.
+#'
+#' @keywords internal
+#' @noRd
+column_picks <- function(dataname, choices, selected) {
+  checkmate::assert_string(dataname)
+  choices <- unique(as.character(choices))
+  choices <- choices[!is.na(choices) & nzchar(choices)]
+  checkmate::assert_character(choices, min.len = 1L, any.missing = FALSE)
+  selected <- as.character(selected[[1L]])
+  checkmate::assert_string(selected, min.chars = 1L)
+  if (!selected %in% choices) {
+    choices <- c(selected, choices)
+  }
+  teal.picks::picks(
+    teal.picks::datasets(choices = dataname, selected = dataname),
+    teal.picks::variables(
+      choices = choices,
+      selected = selected,
+      multiple = FALSE
+    )
+  )
+}
+
+
+#' Require a single-column [`teal.picks::picks`] object and attach `dataname` when needed.
+#'
+#' @keywords internal
+#' @noRd
+ensure_column_picks <- function(x, dataname, arg_name) {
+  if (is.null(x$variables)) {
+    stop(sprintf("`%s` must include a variables() step.", arg_name), call. = FALSE)
+  }
+  if (!identical(attr(x$variables, "multiple", exact = TRUE), FALSE)) {
+    stop(
+      sprintf("`multiple` metadata does not match the requirement for `%s`.", arg_name),
+      " Please set multiple = FALSE in the picks object.",
+      call. = FALSE
+    )
+  }
+  if (!is.null(x$datasets)) {
+    return(x)
+  }
+  if (is.null(x$values)) {
+    teal.picks::picks(
+      teal.picks::datasets(choices = dataname, selected = dataname),
+      x$variables
+    )
+  } else {
+    teal.picks::picks(
+      teal.picks::datasets(choices = dataname, selected = dataname),
+      x$variables,
+      x$values
+    )
+  }
+}
+
+
+#' Coerce a column selector to [`teal.picks::picks`].
+#'
+#' `NULL` uses `choices` / `selected`. A character vector is deprecated and
+#' read as column names (names of the vector are display labels and are dropped).
+#'
+#' @keywords internal
+#' @noRd
+migrate_column_selector_to_picks <- function(x, # nolint: object_length_linter.
+                                             dataname,
+                                             choices,
+                                             selected,
+                                             arg_name) {
+  if (is.null(x)) {
+    return(column_picks(dataname, choices, selected))
+  }
+  if (inherits(x, "picks")) {
+    return(ensure_column_picks(x, dataname, arg_name))
+  }
+  if (is.character(x)) {
+    lifecycle::deprecate_warn(
+      when = "0.1.0",
+      what = I(sprintf("`%s` = 'character vector'", arg_name)),
+      with = I("`teal.picks::picks()`"),
+      details = paste(
+        "Pass `teal.picks::picks()` with `datasets()` and `variables()` (`multiple = FALSE`).",
+        "Support for a character vector of column names is deprecated."
+      )
+    )
+    cols <- as.character(x)
+    cols <- cols[!is.na(cols) & nzchar(cols)]
+    if (length(cols) < 1L) {
+      stop(sprintf("`%s` must name at least one column.", arg_name), call. = FALSE)
+    }
+    return(column_picks(dataname, cols, cols[[1L]]))
+  }
+  stop(
+    sprintf("`%s` must be a `teal.picks::picks()` object or a character vector of column names.", arg_name),
+    call. = FALSE
+  )
+}
+
+
+#' Build the population-flag column pick.
+#'
+#' `population_var` may be a picks object or a legacy column name.
+#' `population_choices` supplies the legacy choice list.
+#'
+#' @keywords internal
+#' @noRd
+migrate_population_to_picks <- function(population_var, population_choices, adsl_name) {
+  if (inherits(population_var, "picks")) {
+    return(ensure_column_picks(population_var, adsl_name, "population_var"))
+  }
+
+  default_choices <- c("SAFFL", "ITTFL")
+  if (is.null(population_var) && is.null(population_choices)) {
+    return(column_picks(adsl_name, default_choices, "SAFFL"))
+  }
+
+  lifecycle::deprecate_warn(
+    when = "0.1.0",
+    what = I("`population_var` / `population_choices`"),
+    with = I("`teal.picks::picks()`"),
+    details = paste(
+      "Pass `population_var` as `teal.picks::picks()` with `datasets()` and `variables()` (`multiple = FALSE`).",
+      "Support for a column name plus `population_choices` is deprecated."
+    )
+  )
+
+  if (is.character(population_choices)) {
+    choices <- as.character(population_choices)
+  } else if (is.null(population_choices)) {
+    choices <- default_choices
+  } else {
+    stop("`population_choices` must be a character vector of flag columns.", call. = FALSE)
+  }
+  choices <- choices[!is.na(choices) & nzchar(choices)]
+  if (length(choices) < 1L) {
+    stop("`population_choices` must name at least one column.", call. = FALSE)
+  }
+
+  selected <- if (is.character(population_var) && length(population_var) == 1L && nzchar(population_var)) {
+    population_var
+  } else if (is.null(population_var) && "SAFFL" %in% choices) {
+    "SAFFL"
+  } else if (is.null(population_var)) {
+    choices[[1L]]
+  } else {
+    stop("`population_var` must be a column name or a `teal.picks::picks()` object.", call. = FALSE)
+  }
+  column_picks(adsl_name, choices, selected)
+}
+
+
+#' Character column name stored on an unresolved column pick, or `default`.
+#'
+#' @keywords internal
+#' @noRd
+column_fallback <- function(picks, default) {
+  sel <- picks$variables$selected
+  if (is.character(sel) && length(sel) == 1L && !is.na(sel) && nzchar(sel)) {
+    sel
+  } else {
+    default
+  }
+}
+
+
+#' Length-1 column name from a resolved column pick.
+#'
+#' @keywords internal
+#' @noRd
+selected_pick_column <- function(resolved, fallback) {
+  sel <- if (is.null(resolved) || is.null(resolved$variables)) {
+    character(0)
+  } else {
+    as.character(resolved$variables$selected)
+  }
+  sel <- sel[!is.na(sel) & nzchar(sel)]
+  if (length(sel) == 1L) sel else fallback
+}
+
+
+#' Coerce `cat` to one PARAMCD [`teal.picks::picks`] object.
+#'
+#' `NULL` builds the default. A `picks` object is checked for
+#' `multiple = FALSE`. A legacy `choices_selected` is deprecated, then converted.
+#'
+#' @keywords internal
+#' @noRd
+migrate_cat_to_picks <- function(cat, tte_name, paramcd) {
+  if (is.null(cat)) {
+    return(default_paramcd_picks(tte_name, paramcd))
+  }
+  if (inherits(cat, "picks")) {
+    return(ensure_paramcd_picks(cat, tte_name, paramcd))
+  }
+  if (inherits(cat, "choices_selected")) {
+    lifecycle::deprecate_warn(
+      when = "0.1.0",
+      what = I("`cat` = `choices_selected`"),
+      with = I("`teal.picks::picks()`"),
+      details = paste(
+        "Pass `teal.picks::picks()` with `datasets()`, `variables()`, and `values()`.",
+        "Support for legacy `teal.transform::choices_selected()` is deprecated."
+      )
+    )
+    return(choices_selected_to_paramcd_picks(cat, tte_name))
+  }
+  stop(
+    "`cat` must be a `teal.picks::picks()` object or a legacy `choices_selected`.",
+    call. = FALSE
+  )
+}

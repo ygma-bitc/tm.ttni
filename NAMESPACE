@@ -13,4 +13,13 @@ export(standardize_adsl)
 export(standardize_adtte)
 export(tm_t_ttni)
 export(ttni_surv_time_choices)
+importFrom(lifecycle,deprecate_warn)
 importFrom(rlang,.data)
+importFrom(teal.picks,
+  datasets,
+  picks,
+  picks_srv,
+  picks_ui,
+  values,
+  variables
+)

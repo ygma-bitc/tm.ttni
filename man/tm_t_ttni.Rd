@@ -10,10 +10,10 @@ tm_t_ttni(
   adsl_name = "ADSL",
   tte_name = "ADTTE",
   paramcd = "TTNI",
-  group_vars = c(`Actual Treatment` = "TRT01A"),
-  population_var = "SAFFL",
+  group_vars = NULL,
+  population_var = NULL,
   population_value = "Y",
-  population_choices = c(`Safety (SAFFL)` = "SAFFL", `ITT (ITTFL)` = "ITTFL"),
+  population_choices = NULL,
   timepoints = c(3, 6, 12, 18, 24),
   landmark_style = c("detailed", "rate_only"),
   surv_stats = default_ttni_surv_stats(),
@@ -27,22 +27,35 @@ tm_t_ttni(
 \arguments{
 \item{label}{Module label.}
 
-\item{cat}{Optional \code{choices_selected} for PARAMCD. When \code{NULL}, \code{paramcd}
-is used as the default choice.}
+\item{cat}{(\code{picks} or legacy \code{choices_selected}) PARAMCD selector.
+When \code{NULL}, a \code{\link[teal.picks:picks]{teal.picks::picks()}} object is built: \code{datasets} is
+\code{tte_name}, \code{variables} is fixed to \code{PARAMCD} with \code{multiple = FALSE},
+and \code{values} selects \code{paramcd} with \code{multiple = FALSE}.
+A \code{teal.transform::choices_selected} object is still accepted, with a
+deprecation warning, and converted to that picks shape.}
 
 \item{adsl_name}{ADSL dataset name in \code{teal_data}.}
 
 \item{tte_name}{ADTTE dataset name.}
 
-\item{paramcd}{Default PARAMCD when \code{cat} is not supplied.}
+\item{paramcd}{Default PARAMCD stored in \code{values$selected} when \code{cat} is \code{NULL}.}
 
-\item{group_vars}{Named character vector of grouping variables.}
+\item{group_vars}{(\code{picks} or legacy character) grouping column.
+When \code{NULL}, \code{datasets} is \code{adsl_name} and \code{variables} is \code{TRT01A}
+(\code{multiple = FALSE}). A character vector of column names is still
+accepted, with a deprecation warning. Names on that vector were display
+labels and are dropped.}
 
-\item{population_var}{Default population flag (\code{SAFFL} or \code{ITTFL}).}
+\item{population_var}{(\code{picks} or legacy character) population-flag column.
+When \code{NULL} and \code{population_choices} is \code{NULL}, \code{datasets} is \code{adsl_name}
+and \code{variables} offers \code{SAFFL} and \code{ITTFL}, with \code{SAFFL} selected
+(\code{multiple = FALSE}).}
 
 \item{population_value}{Population flag value to keep.}
 
-\item{population_choices}{Named choices shown in the population selector.}
+\item{population_choices}{Legacy character vector of flag columns. Ignored
+when \code{population_var} is a \code{picks} object. Passing either this or a
+character \code{population_var} signals a deprecation warning.}
 
 \item{timepoints}{Default landmark months.}
 
@@ -67,24 +80,48 @@ A \code{teal} module object.
 \description{
 Interactive TTE table. Kaplan-Meier summaries are always shown. Hazard
 ratio, 95\% CI, and log-rank p-value appear only when the selected grouping
-variable has exactly two arms. PARAMCD is selected with \code{teal.transform}.
+variable has exactly two arms. PARAMCD, the grouping variable, and the
+population flag are selected with \code{teal.picks}.
 }
 \examples{
 if (interactive()) {
   data <- make_synthetic_ttni_data("two_arm")
   app_data <- teal.data::teal_data(ADSL = data$ADSL, ADTTE = data$ADTTE)
+  paramcd_choices <- unique(as.character(data$ADTTE$PARAMCD))
   app <- teal::init(
     data = app_data,
     modules = teal::modules(
       tm_t_ttni(
         label = "TTNI",
-        cat = teal.transform::choices_selected(
-          choices = teal.transform::value_choices(
-            data = "ADTTE",
-            var_choices = "PARAMCD",
-            var_label = "PARAM"
+        cat = teal.picks::picks(
+          teal.picks::datasets(choices = "ADTTE", selected = "ADTTE"),
+          teal.picks::variables(
+            choices = "PARAMCD",
+            selected = "PARAMCD",
+            multiple = FALSE,
+            fixed = TRUE
           ),
-          selected = "TTNI"
+          teal.picks::values(
+            choices = paramcd_choices,
+            selected = "TTNI",
+            multiple = FALSE
+          )
+        ),
+        group_vars = teal.picks::picks(
+          teal.picks::datasets(choices = "ADSL", selected = "ADSL"),
+          teal.picks::variables(
+            choices = c("TRT01A", "SEX"),
+            selected = "TRT01A",
+            multiple = FALSE
+          )
+        ),
+        population_var = teal.picks::picks(
+          teal.picks::datasets(choices = "ADSL", selected = "ADSL"),
+          teal.picks::variables(
+            choices = c("SAFFL", "ITTFL"),
+            selected = "SAFFL",
+            multiple = FALSE
+          )
         )
       )
     )

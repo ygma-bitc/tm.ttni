@@ -1,4 +1,5 @@
 # Convenience wrapper for local development.
+# PARAMCD, the grouping column, and the population flag in the demo are teal.picks selectors (see inst/examples/app.R).
 # Usage from the repository root:
 #   shiny::runApp("app.R")
 

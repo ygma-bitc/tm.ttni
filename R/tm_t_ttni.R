@@ -49,19 +49,13 @@ ui_t_ttni <- function(id, ...) {
       ),
       encoding = shiny::tags$div(
         shiny::tags$label("Encodings", class = "text-primary"),
-        teal.transform::data_extract_ui(
-          id = ns("tte_cat"),
-          label = "Select PARAMCD",
-          data_extract_spec = a$tte_cat,
-          is_single_dataset = TRUE
+        shiny::tags$div(
+          shiny::tags$label("Select PARAMCD"),
+          teal.picks::picks_ui(ns("tte_cat"), a$tte_cat)
         ),
-        shiny::selectizeInput(
-          inputId = ns("arm_var"),
-          label = "Treatment / group variable",
-          choices = a$group_vars,
-          selected = unname(a$group_vars[[1L]]),
-          multiple = FALSE,
-          width = "100%"
+        shiny::tags$div(
+          shiny::tags$label("Treatment / group variable"),
+          teal.picks::picks_ui(ns("arm_var"), a$arm_var)
         ),
         shiny::selectizeInput(
           inputId = ns("ref_arm"),
@@ -70,13 +64,9 @@ ui_t_ttni <- function(id, ...) {
           multiple = FALSE,
           width = "100%"
         ),
-        shiny::selectizeInput(
-          inputId = ns("population_var"),
-          label = "Population flag",
-          choices = a$population_choices,
-          selected = a$population_var,
-          multiple = FALSE,
-          width = "100%"
+        shiny::tags$div(
+          shiny::tags$label("Population flag"),
+          teal.picks::picks_ui(ns("population_var"), a$population_var)
         ),
         shiny::uiOutput(ns("design_note")),
         shiny::tags$hr(),
@@ -126,8 +116,8 @@ srv_t_ttni <- function(id,
                        adsl_name = "ADSL",
                        tte_name = "ADTTE",
                        paramcd = "TTNI",
-                       group_vars = c("Actual Treatment" = "TRT01A"),
-                       population_var = "SAFFL",
+                       arm_var,
+                       population_var,
                        population_value = "Y",
                        timepoints = c(3, 6, 12, 18, 24),
                        landmark_style = "detailed",
@@ -140,17 +130,18 @@ srv_t_ttni <- function(id,
   checkmate::assert_class(data, "reactive")
 
   shiny::moduleServer(id, function(input, output, session) {
-    selector_list <- teal.transform::data_extract_multiple_srv(
-      data_extract = list(tte_cat = tte_cat),
-      datasets = data,
-      select_validation_rule = list(
-        tte_cat = ~ if (length(.) != 1L) "Please select exactly 1 parameter."
-      )
+    selectors <- teal.picks::picks_srv(
+      id = "",
+      picks = list(
+        tte_cat = tte_cat,
+        arm_var = arm_var,
+        population_var = population_var
+      ),
+      data = data
     )
 
     iv_r <- shiny::reactive({
       iv <- shinyvalidate::InputValidator$new()
-      iv$add_rule("arm_var", ~ if (!nzchar(. %||% "")) "Select a treatment / group variable.")
       iv$add_rule("surv_stats", ~ if (length(.) == 0L) "Select at least one time-to-event statistic.")
       iv$add_rule("timepoints", function(value) {
         ok <- tryCatch(
@@ -164,12 +155,30 @@ srv_t_ttni <- function(id,
           "Enter at least one positive landmark month (comma-separated)."
         }
       })
-      teal.transform::compose_and_enable_validators(iv, selector_list, validator_names = NULL)
+      iv$enable()
+      iv
     })
 
     selected_paramcd <- shiny::reactive({
-      sel <- selector_list()$tte_cat()$select
-      if (length(sel) == 1L && nzchar(sel)) sel else paramcd
+      resolved <- selectors$tte_cat()
+      sel <- if (is.null(resolved) || is.null(resolved$values)) {
+        character(0)
+      } else {
+        as.character(resolved$values$selected)
+      }
+      sel <- sel[!is.na(sel) & nzchar(sel)]
+      if (length(sel) == 1L) sel else paramcd
+    })
+
+    arm_fallback <- column_fallback(arm_var, "TRT01A")
+    population_fallback <- column_fallback(population_var, "SAFFL")
+
+    selected_arm_var <- shiny::reactive({
+      selected_pick_column(selectors$arm_var(), arm_fallback)
+    })
+
+    selected_population_var <- shiny::reactive({
+      selected_pick_column(selectors$population_var(), population_fallback)
     })
 
     datasets_r <- shiny::reactive({
@@ -183,10 +192,10 @@ srv_t_ttni <- function(id,
 
     shiny::observe({
       ds <- datasets_r()
-      arm_var <- input$arm_var %||% unname(group_vars[[1L]])
-      src <- if (!is.null(ds$adsl) && arm_var %in% names(ds$adsl)) ds$adsl else ds$adtte
-      shiny::req(arm_var %in% names(src))
-      design <- detect_arm_design(src, arm_var = arm_var)
+      arm_name <- selected_arm_var()
+      src <- if (!is.null(ds$adsl) && arm_name %in% names(ds$adsl)) ds$adsl else ds$adtte
+      shiny::req(arm_name %in% names(src))
+      design <- detect_arm_design(src, arm_var = arm_name)
       shiny::updateSelectizeInput(
         session,
         "ref_arm",
@@ -198,16 +207,17 @@ srv_t_ttni <- function(id,
     prepped_r <- shiny::reactive({
       teal::validate_inputs(iv_r())
       ds <- datasets_r()
+      arm_name <- selected_arm_var()
       shiny::validate(
-        shiny::need(!is.null(input$arm_var) && nzchar(input$arm_var), "Select a treatment / group variable.")
+        shiny::need(length(arm_name) == 1L && nzchar(arm_name), "Select a treatment / group variable.")
       )
       prep_ttni_data(
         adsl = ds$adsl,
         adtte = ds$adtte,
-        arm_var = input$arm_var,
+        arm_var = arm_name,
         ref_arm = input$ref_arm,
         paramcd = selected_paramcd(),
-        population_var = input$population_var %||% population_var,
+        population_var = selected_population_var(),
         population_value = population_value
       )
     })
@@ -261,9 +271,9 @@ srv_t_ttni <- function(id,
         adsl_name = adsl_name,
         tte_name = tte_name,
         paramcd = selected_paramcd(),
-        arm_var = input$arm_var,
+        arm_var = selected_arm_var(),
         ref_arm = input$ref_arm,
-        population_var = input$population_var %||% population_var,
+        population_var = selected_population_var(),
         timepoints = input$timepoints %||% timepoints,
         landmark_style = input$landmark_style %||% landmark_style,
         show_total = isTRUE(input$show_total),
@@ -303,18 +313,32 @@ srv_t_ttni <- function(id,
 #'
 #' Interactive TTE table. Kaplan-Meier summaries are always shown. Hazard
 #' ratio, 95% CI, and log-rank p-value appear only when the selected grouping
-#' variable has exactly two arms. PARAMCD is selected with `teal.transform`.
+#' variable has exactly two arms. PARAMCD, the grouping variable, and the
+#' population flag are selected with `teal.picks`.
 #'
 #' @param label Module label.
-#' @param cat Optional `choices_selected` for PARAMCD. When `NULL`, `paramcd`
-#'   is used as the default choice.
+#' @param cat (`picks` or legacy `choices_selected`) PARAMCD selector.
+#'   When `NULL`, a [`teal.picks::picks()`] object is built: `datasets` is
+#'   `tte_name`, `variables` is fixed to `PARAMCD` with `multiple = FALSE`,
+#'   and `values` selects `paramcd` with `multiple = FALSE`.
+#'   A `teal.transform::choices_selected` object is still accepted, with a
+#'   deprecation warning, and converted to that picks shape.
 #' @param adsl_name ADSL dataset name in `teal_data`.
 #' @param tte_name ADTTE dataset name.
-#' @param paramcd Default PARAMCD when `cat` is not supplied.
-#' @param group_vars Named character vector of grouping variables.
-#' @param population_var Default population flag (`SAFFL` or `ITTFL`).
+#' @param paramcd Default PARAMCD stored in `values$selected` when `cat` is `NULL`.
+#' @param group_vars (`picks` or legacy character) grouping column.
+#'   When `NULL`, `datasets` is `adsl_name` and `variables` is `TRT01A`
+#'   (`multiple = FALSE`). A character vector of column names is still
+#'   accepted, with a deprecation warning. Names on that vector were display
+#'   labels and are dropped.
+#' @param population_var (`picks` or legacy character) population-flag column.
+#'   When `NULL` and `population_choices` is `NULL`, `datasets` is `adsl_name`
+#'   and `variables` offers `SAFFL` and `ITTFL`, with `SAFFL` selected
+#'   (`multiple = FALSE`).
 #' @param population_value Population flag value to keep.
-#' @param population_choices Named choices shown in the population selector.
+#' @param population_choices Legacy character vector of flag columns. Ignored
+#'   when `population_var` is a `picks` object. Passing either this or a
+#'   character `population_var` signals a deprecation warning.
 #' @param timepoints Default landmark months.
 #' @param landmark_style `"detailed"` or `"rate_only"`.
 #' @param surv_stats Initial time-to-event statistics from
@@ -331,18 +355,41 @@ srv_t_ttni <- function(id,
 #' if (interactive()) {
 #'   data <- make_synthetic_ttni_data("two_arm")
 #'   app_data <- teal.data::teal_data(ADSL = data$ADSL, ADTTE = data$ADTTE)
+#'   paramcd_choices <- unique(as.character(data$ADTTE$PARAMCD))
 #'   app <- teal::init(
 #'     data = app_data,
 #'     modules = teal::modules(
 #'       tm_t_ttni(
 #'         label = "TTNI",
-#'         cat = teal.transform::choices_selected(
-#'           choices = teal.transform::value_choices(
-#'             data = "ADTTE",
-#'             var_choices = "PARAMCD",
-#'             var_label = "PARAM"
+#'         cat = teal.picks::picks(
+#'           teal.picks::datasets(choices = "ADTTE", selected = "ADTTE"),
+#'           teal.picks::variables(
+#'             choices = "PARAMCD",
+#'             selected = "PARAMCD",
+#'             multiple = FALSE,
+#'             fixed = TRUE
 #'           ),
-#'           selected = "TTNI"
+#'           teal.picks::values(
+#'             choices = paramcd_choices,
+#'             selected = "TTNI",
+#'             multiple = FALSE
+#'           )
+#'         ),
+#'         group_vars = teal.picks::picks(
+#'           teal.picks::datasets(choices = "ADSL", selected = "ADSL"),
+#'           teal.picks::variables(
+#'             choices = c("TRT01A", "SEX"),
+#'             selected = "TRT01A",
+#'             multiple = FALSE
+#'           )
+#'         ),
+#'         population_var = teal.picks::picks(
+#'           teal.picks::datasets(choices = "ADSL", selected = "ADSL"),
+#'           teal.picks::variables(
+#'             choices = c("SAFFL", "ITTFL"),
+#'             selected = "SAFFL",
+#'             multiple = FALSE
+#'           )
 #'         )
 #'       )
 #'     )
@@ -356,13 +403,10 @@ tm_t_ttni <- function(label = "Time to Next Intervention (TTNI)",
                       adsl_name = "ADSL",
                       tte_name = "ADTTE",
                       paramcd = "TTNI",
-                      group_vars = c("Actual Treatment" = "TRT01A"),
-                      population_var = "SAFFL",
+                      group_vars = NULL,
+                      population_var = NULL,
                       population_value = "Y",
-                      population_choices = c(
-                        "Safety (SAFFL)" = "SAFFL",
-                        "ITT (ITTFL)" = "ITTFL"
-                      ),
+                      population_choices = NULL,
                       timepoints = c(3, 6, 12, 18, 24),
                       landmark_style = c("detailed", "rate_only"),
                       surv_stats = default_ttni_surv_stats(),
@@ -377,10 +421,7 @@ tm_t_ttni <- function(label = "Time to Next Intervention (TTNI)",
   checkmate::assert_string(adsl_name)
   checkmate::assert_string(tte_name)
   checkmate::assert_string(paramcd)
-  checkmate::assert_character(group_vars, min.len = 1L, names = "named")
-  checkmate::assert_string(population_var)
   checkmate::assert_string(population_value)
-  checkmate::assert_character(population_choices, min.len = 1L, names = "named")
   checkmate::assert_numeric(timepoints, min.len = 1L, lower = 0, finite = TRUE)
   surv_stats <- normalize_surv_time_stats(surv_stats)
   checkmate::assert_flag(include_followup)
@@ -388,60 +429,54 @@ tm_t_ttni <- function(label = "Time to Next Intervention (TTNI)",
   checkmate::assert_flag(compute_hr, null.ok = TRUE)
   checkmate::assert_string(title, null.ok = TRUE)
 
-  if (is.null(cat)) {
-    cat <- teal.transform::choices_selected(
-      choices = paramcd,
-      selected = paramcd
-    )
-  } else {
-    checkmate::assert_class(cat, "choices_selected")
-  }
-
-  data_extract_list <- list(
-    tte_cat = teal.modules.clinical::cs_to_des_select(
-      cat,
-      dataname = tte_name,
-      multiple = FALSE,
-      ordered = TRUE
-    )
+  cat <- migrate_cat_to_picks(cat, tte_name = tte_name, paramcd = paramcd)
+  checkmate::assert_class(cat, "picks")
+  group_vars <- migrate_column_selector_to_picks(
+    group_vars,
+    dataname = adsl_name,
+    choices = "TRT01A",
+    selected = "TRT01A",
+    arg_name = "group_vars"
   )
+  population_var <- migrate_population_to_picks(
+    population_var,
+    population_choices,
+    adsl_name = adsl_name
+  )
+  checkmate::assert_class(group_vars, "picks")
+  checkmate::assert_class(population_var, "picks")
 
   teal::module(
     label = label,
     server = srv_t_ttni,
     ui = ui_t_ttni,
-    ui_args = c(
-      data_extract_list,
-      list(
-        group_vars = group_vars,
-        population_var = population_var,
-        population_choices = population_choices,
-        timepoints = timepoints,
-        landmark_style = landmark_style,
-        surv_stats = surv_stats,
-        surv_stat_choices = ttni_surv_time_choices(),
-        include_followup = include_followup,
-        show_total = show_total
-      )
+    ui_args = list(
+      tte_cat = cat,
+      arm_var = group_vars,
+      population_var = population_var,
+      timepoints = timepoints,
+      landmark_style = landmark_style,
+      surv_stats = surv_stats,
+      surv_stat_choices = ttni_surv_time_choices(),
+      include_followup = include_followup,
+      show_total = show_total
     ),
-    server_args = c(
-      data_extract_list,
-      list(
-        adsl_name = adsl_name,
-        tte_name = tte_name,
-        paramcd = paramcd,
-        group_vars = group_vars,
-        population_var = population_var,
-        population_value = population_value,
-        timepoints = timepoints,
-        landmark_style = landmark_style,
-        surv_stats = surv_stats,
-        include_followup = include_followup,
-        show_total = show_total,
-        compute_hr = compute_hr,
-        conf_type = conf_type,
-        title = title
-      )
+    server_args = list(
+      tte_cat = cat,
+      adsl_name = adsl_name,
+      tte_name = tte_name,
+      paramcd = paramcd,
+      arm_var = group_vars,
+      population_var = population_var,
+      population_value = population_value,
+      timepoints = timepoints,
+      landmark_style = landmark_style,
+      surv_stats = surv_stats,
+      include_followup = include_followup,
+      show_total = show_total,
+      compute_hr = compute_hr,
+      conf_type = conf_type,
+      title = title
     ),
     datanames = unique(c(adsl_name, tte_name))
   )
