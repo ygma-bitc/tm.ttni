@@ -1,12 +1,12 @@
-# tm.ttni: Teal Module for Time-to-Next-Intervention and Related TTE Tables
+# tm.ttni: Teal Module for Time-to-Next-Intervention and Time-to-Event Tables
 
-Provides an open-source teal module and a reusable table builder for
-Time to Next Intervention (TTNI) and related time-to-event endpoints.
-Kaplan-Meier summaries are produced with tern/rtables for both multi-arm
-(dose-level) and two-arm designs. Hazard ratio, Wald confidence
-interval, and log-rank p-value are calculated only when exactly two
-treatment arms are present. The builder can be called without launching
-Shiny.
+Provides an open-source 'teal' module and a reusable table builder for
+time to next intervention and related time-to-event endpoints.
+Kaplan-Meier summaries are produced with 'tern' and 'rtables' for both
+multi-arm (dose-level) and two-arm designs. Hazard ratio, Wald
+confidence interval, and log-rank p-value are calculated only when
+exactly two treatment arms are present. The builder can be called
+without launching 'shiny'.
 
 ## See also
 
@@ -20,8 +20,8 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Y.G. Ma <ygma0929@gmail.com>
+**Maintainer**: Yaoguang Ma <ygma0929@gmail.com>
 
 Authors:
 
-- Y.G. Ma <ygma0929@gmail.com>
+- Yaoguang Ma <ygma0929@gmail.com>
