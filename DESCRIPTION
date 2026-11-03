@@ -1,5 +1,5 @@
 Package: tm.ttni
-Title: Teal Module for Time-to-Next-Intervention and Time-to-Event Tables
+Title: 'teal' Module for Time-to-Next-Intervention and Time-to-Event Tables
 Version: 0.1.0
 Authors@R: person(
     "Yaoguang", "Ma",
