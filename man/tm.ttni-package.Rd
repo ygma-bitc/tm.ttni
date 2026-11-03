@@ -4,9 +4,9 @@
 \name{tm.ttni-package}
 \alias{tm.ttni}
 \alias{tm.ttni-package}
-\title{tm.ttni: Teal Module for Time-to-Next-Intervention and Related TTE Tables}
+\title{tm.ttni: Teal Module for Time-to-Next-Intervention and Time-to-Event Tables}
 \description{
-Provides an open-source teal module and a reusable table builder for Time to Next Intervention (TTNI) and related time-to-event endpoints. Kaplan-Meier summaries are produced with tern/rtables for both multi-arm (dose-level) and two-arm designs. Hazard ratio, Wald confidence interval, and log-rank p-value are calculated only when exactly two treatment arms are present. The builder can be called without launching Shiny.
+Provides an open-source 'teal' module and a reusable table builder for time to next intervention and related time-to-event endpoints. Kaplan-Meier summaries are produced with 'tern' and 'rtables' for both multi-arm (dose-level) and two-arm designs. Hazard ratio, Wald confidence interval, and log-rank p-value are calculated only when exactly two treatment arms are present. The builder can be called without launching 'shiny'.
 }
 \seealso{
 Useful links:
@@ -18,11 +18,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Y.G. Ma \email{ygma0929@gmail.com}
+\strong{Maintainer}: Yaoguang Ma \email{ygma0929@gmail.com}
 
 Authors:
 \itemize{
-  \item Y.G. Ma \email{ygma0929@gmail.com}
+  \item Yaoguang Ma \email{ygma0929@gmail.com}
 }
 
 }
