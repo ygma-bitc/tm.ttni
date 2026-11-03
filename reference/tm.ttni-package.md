@@ -1,4 +1,4 @@
-# tm.ttni: Teal Module for Time-to-Next-Intervention and Time-to-Event Tables
+# tm.ttni: 'teal' Module for Time-to-Next-Intervention and Time-to-Event Tables
 
 Provides an open-source 'teal' module and a reusable table builder for
 time to next intervention and related time-to-event endpoints.
