@@ -2,7 +2,7 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-11-11T05:04Z
+last_built: 2026-11-11T05:14Z
 urls:
   reference: https://ygma-bitc.github.io/tm.ttni/reference
   article: https://ygma-bitc.github.io/tm.ttni/articles
