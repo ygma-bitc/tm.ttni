@@ -2,6 +2,10 @@
 
 ## tm.ttni 0.1.0
 
+- Encoding-panel `teal.picks` badges show the selected column
+  (`PARAMCD`, `TRT01A`) without the dataset name. The dataset stays on
+  the badge tooltip (`datasets:` / `variables:`). `teal.picks` has no
+  argument to omit that slot from the summary.
 - PARAMCD selection now uses `teal.picks`. Legacy `choices_selected`
   input is still accepted and signals a deprecation warning.
 - Treatment / group variable and population flag now use `teal.picks`

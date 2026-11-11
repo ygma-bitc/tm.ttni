@@ -32,7 +32,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="tmttni-010">tm.ttni 0.1.0<a class="anchor" aria-label="anchor" href="#tmttni-010"></a></h2>
-<ul><li>PARAMCD selection now uses <code>teal.picks</code>. Legacy <code>choices_selected</code> input is still accepted and signals a deprecation warning.</li>
+<ul><li>Encoding-panel <code>teal.picks</code> badges show the selected column (<code>PARAMCD</code>, <code>TRT01A</code>) without the dataset name. The dataset stays on the badge tooltip (<code>datasets:</code> / <code>variables:</code>). <code>teal.picks</code> has no argument to omit that slot from the summary.</li>
+<li>PARAMCD selection now uses <code>teal.picks</code>. Legacy <code>choices_selected</code> input is still accepted and signals a deprecation warning.</li>
 <li>Treatment / group variable and population flag now use <code>teal.picks</code> column selectors (<code>multiple = FALSE</code>). A character vector for <code>group_vars</code>, and <code>population_var</code> / <code>population_choices</code>, are still accepted and signal a deprecation warning.</li>
 <li>Initial TTNI table builder using <code>tern</code> / <code>rtables</code>.</li>
 <li>Automatic two-arm vs multi-arm detection via <code><a href="../reference/detect_arm_design.html">detect_arm_design()</a></code>.</li>
