@@ -36,35 +36,85 @@ build_reproducible_code_text <- function(adsl_name,
 }
 
 
+#' Visible badge text for one teal.picks selector.
+#'
+#' The upstream badge prints every slot, so the dataset name is prefixed
+#' onto the column. There is no argument to drop that slot. The dataset
+#' stays on the tooltip, in the same `datasets:` / `variables:` form.
+#'
+#' @keywords internal
+#' @noRd
+variable_badge_label <- function(pick) {
+  variable <- pick_slot_text(pick$variables)
+  dataset <- pick_slot_text(pick$datasets)
+  shiny::tags$span(
+    title = sprintf("datasets: %s\nvariables: %s", dataset, variable),
+    variable
+  )
+}
+
+pick_slot_text <- function(slot) {
+  sel <- if (is.null(slot)) character(0) else as.character(slot$selected)
+  sel <- sel[!is.na(sel) & nzchar(sel)]
+  if (length(sel)) paste(sel, collapse = ", ") else "~"
+}
+
+picks_are_fixed <- function(picks) {
+  all(vapply(picks, teal.picks::is_pick_fixed, logical(1)))
+}
+
+#' Badge container that shows `variable_badge_label()` instead of the
+#' upstream summary.
+#'
+#' @keywords internal
+#' @noRd
+picks_badge_container <- function(label_id, fixed) {
+  force(label_id)
+  force(fixed)
+  badge_ui <- utils::getFromNamespace(
+    if (isTRUE(fixed)) "badge_fixed" else "badge_dropdown",
+    "teal.picks"
+  )
+  function(content, id, label) {
+    # `label` is the upstream summary, which prefixes the dataset name.
+    badge_ui(
+      id = id,
+      label = shiny::uiOutput(label_id, inline = TRUE),
+      content = content
+    )
+  }
+}
+
 #' @keywords internal
 ui_t_ttni <- function(id, ...) {
   ns <- shiny::NS(id)
   a <- list(...)
+  pick_ui <- function(input_id, picks) {
+    teal.picks::picks_ui(
+      ns(input_id),
+      picks,
+      container = picks_badge_container(
+        ns(paste0(input_id, "_label")),
+        picks_are_fixed(picks)
+      )
+    )
+  }
 
   shiny::tagList(
     shinyjs::useShinyjs(),
-    # teal.picks badges are 130px wide and do not wrap, which clips names here.
-    shiny::singleton(
-      shiny::tags$head(
-        shiny::includeCSS(
-          system.file("css", "encoding-picks.css", package = "tm.ttni")
-        )
-      )
-    ),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         shiny::uiOutput(ns("table_or_message"))
       ),
       encoding = shiny::tags$div(
-        class = "tm-ttni-encoding",
         shiny::tags$label("Encodings", class = "text-primary"),
         shiny::tags$div(
           shiny::tags$label("Select PARAMCD"),
-          teal.picks::picks_ui(ns("tte_cat"), a$tte_cat)
+          pick_ui("tte_cat", a$tte_cat)
         ),
         shiny::tags$div(
           shiny::tags$label("Treatment / group variable"),
-          teal.picks::picks_ui(ns("arm_var"), a$arm_var)
+          pick_ui("arm_var", a$arm_var)
         ),
         shiny::selectizeInput(
           inputId = ns("ref_arm"),
@@ -75,7 +125,7 @@ ui_t_ttni <- function(id, ...) {
         ),
         shiny::tags$div(
           shiny::tags$label("Population flag"),
-          teal.picks::picks_ui(ns("population_var"), a$population_var)
+          pick_ui("population_var", a$population_var)
         ),
         shiny::uiOutput(ns("design_note")),
         shiny::tags$hr(),
@@ -148,6 +198,15 @@ srv_t_ttni <- function(id,
       ),
       data = data
     )
+
+    for (input_id in c("tte_cat", "arm_var", "population_var")) {
+      local({
+        id <- input_id
+        output[[paste0(id, "_label")]] <- shiny::renderUI(
+          variable_badge_label(selectors[[id]]())
+        )
+      })
+    }
 
     iv_r <- shiny::reactive({
       iv <- shinyvalidate::InputValidator$new()
