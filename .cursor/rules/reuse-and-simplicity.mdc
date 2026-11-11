@@ -1,0 +1,12 @@
+---
+description: Reuse existing code and keep changes simple before writing any code
+alwaysApply: true
+---
+
+Before writing any code, the agent first checks how to reuse what exists and keeps the change simple and easy to read.
+
+- Narrow the change to the actual requirement. Do not add extra branches or arguments for rare cases.
+- Keep one copy of a layout, UI block, or expression and vary it by parameters. Never copy a block to change one or two lines.
+- Reuse existing functions and helpers instead of writing parallel implementations. Search the package first.
+- Do not add defensive code, dependencies, or CSS the problem does not need.
+- Limit tests to the behavior the change guarantees.
