@@ -288,13 +288,27 @@ migrate_population_to_picks <- function(population_var, population_choices, adsl
 }
 
 
+#' Non-missing, non-empty `selected` entries on one teal.picks slot.
+#'
+#' @keywords internal
+#' @noRd
+slot_selected <- function(slot) {
+  sel <- if (is.null(slot)) character(0) else as.character(slot$selected)
+  sel[!is.na(sel) & nzchar(sel)]
+}
+
+
 #' Character column name stored on an unresolved column pick, or `default`.
+#'
+#' Only a length-1 character selection is returned. A factor, several values,
+#' or a missing value stays `default`.
 #'
 #' @keywords internal
 #' @noRd
 column_fallback <- function(picks, default) {
   sel <- picks$variables$selected
-  if (is.character(sel) && length(sel) == 1L && !is.na(sel) && nzchar(sel)) {
+  one_character <- is.character(sel) && length(sel) == 1L
+  if (one_character && length(slot_selected(list(selected = sel))) == 1L) {
     sel
   } else {
     default
@@ -304,16 +318,89 @@ column_fallback <- function(picks, default) {
 
 #' Length-1 column name from a resolved column pick.
 #'
+#' `NA` and empty strings are dropped. Several remaining values return `fallback`.
+#'
 #' @keywords internal
 #' @noRd
 selected_pick_column <- function(resolved, fallback) {
-  sel <- if (is.null(resolved) || is.null(resolved$variables)) {
-    character(0)
-  } else {
-    as.character(resolved$variables$selected)
-  }
-  sel <- sel[!is.na(sel) & nzchar(sel)]
+  sel <- slot_selected(resolved$variables)
   if (length(sel) == 1L) sel else fallback
+}
+
+
+#' Badge text for one slot: comma-separated selection, or `"~"` when empty.
+#'
+#' @keywords internal
+#' @noRd
+pick_slot_text <- function(slot) {
+  sel <- slot_selected(slot)
+  if (length(sel)) paste(sel, collapse = ", ") else "~"
+}
+
+
+#' Visible badge text for one teal.picks selector.
+#'
+#' The upstream badge prints every slot, so the dataset name is prefixed
+#' onto the column. There is no argument to drop that slot. The dataset
+#' stays on the tooltip, in the same `datasets:` / `variables:` form.
+#'
+#' @keywords internal
+#' @noRd
+variable_badge_label <- function(pick) {
+  variable <- pick_slot_text(pick$variables)
+  dataset <- pick_slot_text(pick$datasets)
+  shiny::tags$span(
+    title = sprintf("datasets: %s\nvariables: %s", dataset, variable),
+    variable
+  )
+}
+
+
+#' Whether every step of a picks object is fixed.
+#'
+#' @keywords internal
+#' @noRd
+picks_are_fixed <- function(picks) {
+  all(vapply(picks, teal.picks::is_pick_fixed, logical(1)))
+}
+
+
+#' Badge container that shows `variable_badge_label()` instead of the
+#' upstream summary.
+#'
+#' @keywords internal
+#' @noRd
+picks_badge_container <- function(label_id, fixed) {
+  force(label_id)
+  force(fixed)
+  badge_ui <- utils::getFromNamespace(
+    if (isTRUE(fixed)) "badge_fixed" else "badge_dropdown",
+    "teal.picks"
+  )
+  function(content, id, label) {
+    # `label` is the upstream summary, which prefixes the dataset name.
+    badge_ui(
+      id = id,
+      label = shiny::uiOutput(label_id, inline = TRUE),
+      content = content
+    )
+  }
+}
+
+
+#' Encoding-panel picks control whose badge shows the column name only.
+#'
+#' @keywords internal
+#' @noRd
+pick_ui <- function(ns, input_id, picks) {
+  teal.picks::picks_ui(
+    ns(input_id),
+    picks,
+    container = picks_badge_container(
+      ns(paste0(input_id, "_label")),
+      picks_are_fixed(picks)
+    )
+  )
 }
 
 

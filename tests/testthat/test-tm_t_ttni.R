@@ -31,6 +31,37 @@ test_that("encoding badge label omits the dataset prefix", {
   ))
   expect_match(as.character(arm), ">TRT01A</span>", fixed = TRUE)
   expect_match(as.character(arm), "datasets: ADSL_THREE", fixed = TRUE)
+
+  several <- variable_badge_label(list(
+    datasets = list(selected = c("ADSL", NA, "")),
+    variables = list(selected = c("TRT01A", "SEX", NA))
+  ))
+  expect_match(as.character(several), ">TRT01A, SEX</span>", fixed = TRUE)
+  expect_match(as.character(several), "datasets: ADSL", fixed = TRUE)
+
+  empty <- variable_badge_label(list(
+    datasets = list(selected = NA_character_),
+    variables = list(selected = "")
+  ))
+  expect_match(as.character(empty), ">~</span>", fixed = TRUE)
+  expect_match(as.character(empty), "variables: ~", fixed = TRUE)
+})
+
+test_that("column helpers keep their selection contracts", {
+  named <- c(label = "TRT01A")
+  expect_identical(column_fallback(list(variables = list(selected = named)), "ARM"), named)
+  expect_identical(column_fallback(list(variables = list(selected = c("TRT01A", "SEX"))), "ARM"), "ARM")
+  expect_identical(column_fallback(list(variables = list(selected = c("TRT01A", NA))), "ARM"), "ARM")
+  expect_identical(column_fallback(list(variables = list(selected = factor("TRT01A"))), "ARM"), "ARM")
+  expect_identical(column_fallback(list(variables = list(selected = NA_character_)), "ARM"), "ARM")
+  expect_identical(column_fallback(list(variables = list(selected = "")), "ARM"), "ARM")
+
+  expect_identical(selected_pick_column(list(variables = list(selected = "TRT01A")), "ARM"), "TRT01A")
+  expect_identical(selected_pick_column(list(variables = list(selected = c("TRT01A", "SEX"))), "ARM"), "ARM")
+  expect_identical(selected_pick_column(list(variables = list(selected = c("TRT01A", NA))), "ARM"), "TRT01A")
+  expect_identical(selected_pick_column(list(variables = list(selected = factor("TRT01A"))), "ARM"), "TRT01A")
+  expect_identical(selected_pick_column(NULL, "ARM"), "ARM")
+  expect_identical(selected_pick_column(list(variables = NULL), "ARM"), "ARM")
 })
 
 test_that("tm_t_ttni() returns a teal module", {
