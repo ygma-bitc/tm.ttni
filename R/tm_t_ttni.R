@@ -51,11 +51,11 @@ ui_t_ttni <- function(id, ...) {
         shiny::tags$label("Encodings", class = "text-primary"),
         shiny::tags$div(
           shiny::tags$label("Select PARAMCD"),
-          teal.picks::picks_ui(ns("tte_cat"), a$tte_cat)
+          pick_ui(ns, "tte_cat", a$tte_cat)
         ),
         shiny::tags$div(
           shiny::tags$label("Treatment / group variable"),
-          teal.picks::picks_ui(ns("arm_var"), a$arm_var)
+          pick_ui(ns, "arm_var", a$arm_var)
         ),
         shiny::selectizeInput(
           inputId = ns("ref_arm"),
@@ -66,7 +66,7 @@ ui_t_ttni <- function(id, ...) {
         ),
         shiny::tags$div(
           shiny::tags$label("Population flag"),
-          teal.picks::picks_ui(ns("population_var"), a$population_var)
+          pick_ui(ns, "population_var", a$population_var)
         ),
         shiny::uiOutput(ns("design_note")),
         shiny::tags$hr(),
@@ -140,6 +140,15 @@ srv_t_ttni <- function(id,
       data = data
     )
 
+    for (input_id in c("tte_cat", "arm_var", "population_var")) {
+      local({
+        id <- input_id
+        output[[paste0(id, "_label")]] <- shiny::renderUI(
+          variable_badge_label(selectors[[id]]())
+        )
+      })
+    }
+
     iv_r <- shiny::reactive({
       iv <- shinyvalidate::InputValidator$new()
       iv$add_rule("surv_stats", ~ if (length(.) == 0L) "Select at least one time-to-event statistic.")
@@ -160,13 +169,7 @@ srv_t_ttni <- function(id,
     })
 
     selected_paramcd <- shiny::reactive({
-      resolved <- selectors$tte_cat()
-      sel <- if (is.null(resolved) || is.null(resolved$values)) {
-        character(0)
-      } else {
-        as.character(resolved$values$selected)
-      }
-      sel <- sel[!is.na(sel) & nzchar(sel)]
+      sel <- slot_selected(selectors$tte_cat()$values)
       if (length(sel) == 1L) sel else paramcd
     })
 
