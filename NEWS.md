@@ -1,5 +1,6 @@
 # tm.ttni 0.1.0
 
+* Encoding-panel `teal.picks` badges use the sidebar width so dataset names, column names, and the filter icon stay readable. Upstream badges are fixed at 130px and do not wrap.
 * PARAMCD selection now uses `teal.picks`. Legacy `choices_selected` input is still accepted and signals a deprecation warning.
 * Treatment / group variable and population flag now use `teal.picks` column selectors (`multiple = FALSE`). A character vector for `group_vars`, and `population_var` / `population_choices`, are still accepted and signal a deprecation warning.
 * Initial TTNI table builder using `tern` / `rtables`.

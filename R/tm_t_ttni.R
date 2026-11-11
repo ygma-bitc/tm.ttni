@@ -43,11 +43,20 @@ ui_t_ttni <- function(id, ...) {
 
   shiny::tagList(
     shinyjs::useShinyjs(),
+    # teal.picks badges are 130px wide and do not wrap, which clips names here.
+    shiny::singleton(
+      shiny::tags$head(
+        shiny::includeCSS(
+          system.file("css", "encoding-picks.css", package = "tm.ttni")
+        )
+      )
+    ),
     teal.widgets::standard_layout(
       output = teal.widgets::white_small_well(
         shiny::uiOutput(ns("table_or_message"))
       ),
       encoding = shiny::tags$div(
+        class = "tm-ttni-encoding",
         shiny::tags$label("Encodings", class = "text-primary"),
         shiny::tags$div(
           shiny::tags$label("Select PARAMCD"),

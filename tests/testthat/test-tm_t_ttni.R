@@ -13,6 +13,18 @@ test_that("make_synthetic_ttni_data() returns distinct ADSL and ADTTE", {
   expect_true(all(c("SEX", "RACE", "COUNTRY", "ITTFL") %in% names(two$ADSL)))
 })
 
+test_that("encoding panel keeps teal.picks badges from clipping", {
+  mod <- tm_t_ttni()
+  ui <- do.call(mod$ui, c(list(id = "mod"), mod$ui_args))
+  expect_match(as.character(ui), "tm-ttni-encoding", fixed = TRUE)
+
+  css_path <- system.file("css", "encoding-picks.css", package = "tm.ttni")
+  css <- paste(readLines(css_path), collapse = "\n")
+  expect_match(css, ".tm-ttni-encoding .badge-dropdown", fixed = TRUE)
+  expect_match(css, "width: fit-content", fixed = TRUE)
+  expect_match(css, "white-space: normal", fixed = TRUE)
+})
+
 test_that("tm_t_ttni() returns a teal module", {
   mod <- expect_silent(
     tm_t_ttni(label = "TTNI Demo")
