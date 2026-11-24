@@ -30,7 +30,8 @@ Imports:
     teal (>= 1.2.0),
     teal.picks (>= 0.1.0),
     teal.widgets (>= 0.4.0),
-    tern (>= 0.9.0)
+    tern (>= 0.9.0),
+    utils
 Suggests:
     haven,
     knitr,
