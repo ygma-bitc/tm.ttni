@@ -2,6 +2,8 @@
 
 ## tm.ttni 0.1.0
 
+CRAN release: 2026-11-23
+
 - Encoding-panel `teal.picks` badges show the selected column
   (`PARAMCD`, `TRT01A`) without the dataset name. The dataset stays on
   the badge tooltip (`datasets:` / `variables:`). `teal.picks` has no

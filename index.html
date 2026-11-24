@@ -257,10 +257,47 @@ Layer 6  Entry point    tm_t_ttni() → teal::module()</code></pre>
 </h2>
 <p><code><a href="reference/build_ttni_table.html">build_ttni_table()</a></code> is the reusable engine. It can be called directly in standalone scripts, reporting pipelines, or other Shiny applications without requiring the full teal framework.</p>
 </div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div class="section level3">
+<h3 id="clinical-endpoint-motivation-ttni">Clinical endpoint motivation (TTNI)<a class="anchor" aria-label="anchor" href="#clinical-endpoint-motivation-ttni"></a>
+</h3>
+<ul>
+<li>Mellinghoff IK, van den Bent MJ, Blumenthal DT, et al. Vorasidenib in IDH1- or IDH2-Mutant Low-Grade Glioma (INDIGO). <em>N Engl J Med.</em> 2023;389(7):589–601. <a href="doi:10.1056/NEJMoa2304194" class="uri">doi:10.1056/NEJMoa2304194</a> (<a href="https://pubmed.ncbi.nlm.nih.gov/37272516/" class="external-link">PubMed</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11445763/" class="external-link">PMC</a>). Key secondary endpoint time to next intervention (TTNI): Figure 2B, Figure 3B, and Supplementary Appendix Table S2.</li>
+<li>Cloughesy TF, van den Bent MJ, Touat M, et al. Vorasidenib in IDH1-mutant or IDH2-mutant low-grade glioma (INDIGO): secondary and exploratory endpoints from a randomised, double-blind, placebo-controlled, phase 3 trial. <em>Lancet Oncol.</em> 2025;26(12):1665–1675. <a href="doi:10.1016/S1470-2045(25)00472-3" class="uri">doi:10.1016/S1470-2045(25)00472-3</a>.</li>
+<li>ClinicalTrials.gov. Study of Vorasidenib (AG-881) in Participants With Residual or Recurrent Grade 2 Glioma With an IDH1 or IDH2 Mutation (INDIGO). Identifier: <a href="https://clinicaltrials.gov/study/NCT04164901" class="external-link">NCT04164901</a>.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="statistical-methodology">Statistical methodology<a class="anchor" aria-label="anchor" href="#statistical-methodology"></a>
+</h3>
+<ul>
+<li>Kaplan EL, Meier P. Nonparametric estimation from incomplete observations. <em>J Am Stat Assoc.</em> 1958;53(282):457–481.</li>
+<li>Cox DR. Regression models and life-tables. <em>J R Stat Soc Series B.</em> 1972;34(2):187–220.</li>
+<li>Efron B. The efficiency of Cox’s likelihood function for censored data. <em>J Am Stat Assoc.</em> 1977;72(359):557–565.</li>
+<li>Mantel N. Evaluation of survival data and two new rank order statistics arising in its consideration. <em>Cancer Chemother Rep.</em> 1966;50(3):163–170.</li>
+<li>Peto R, Peto J. Asymptotically efficient rank invariant test procedures. <em>J R Stat Soc Series A.</em> 1972;135(2):185–207.</li>
+<li>Schemper M, Smith TL. A note on quantifying follow-up in studies of failure time. <em>Control Clin Trials.</em> 1996;17(4):343–346.</li>
+<li>Kalbfleisch JD, Prentice RL. <em>The Statistical Analysis of Failure Time Data.</em> 2nd ed. Hoboken, NJ: John Wiley &amp; Sons; 2002.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="data-standards-and-software-ecosystem">Data standards and software ecosystem<a class="anchor" aria-label="anchor" href="#data-standards-and-software-ecosystem"></a>
+</h3>
+<ul>
+<li>Therneau TM. <em>A Package for Survival Analysis in R</em> (<code>survival</code>), used via <code>tern</code>.</li>
+<li>CDISC. <a href="https://www.cdisc.org/standards/foundational/adam" class="external-link">Analysis Data Model (ADaM)</a> (<code>ADSL</code> and <code>ADTTE</code>) and <a href="https://github.com/cdisc-org/sdtm-adam-pilot-project" class="external-link">SDTM/ADaM Pilot Project</a>.</li>
+<li>
+<a href="https://pharmaverse.org" class="external-link">Pharmaverse</a>: <code>teal</code>, <code>teal.picks</code>, <code>teal.widgets</code>, <code>tern</code>, and <code>rtables</code>.</li>
+</ul>
+</div>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
+<li><a href="https://cloud.r-project.org/package=tm.ttni" class="external-link">View on CRAN</a></li>
 <li><a href="https://github.com/ygma-bitc/tm.ttni/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/ygma-bitc/tm.ttni/issues" class="external-link">Report a bug</a></li>
 </ul>

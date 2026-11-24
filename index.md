@@ -171,3 +171,53 @@ and do not redistribute them for a fee.
 is the reusable engine. It can be called directly in standalone scripts,
 reporting pipelines, or other Shiny applications without requiring the
 full teal framework.
+
+## References
+
+### Clinical endpoint motivation (TTNI)
+
+- Mellinghoff IK, van den Bent MJ, Blumenthal DT, et al. Vorasidenib in
+  IDH1- or IDH2-Mutant Low-Grade Glioma (INDIGO). *N Engl J Med.*
+  2023;389(7):589–601. <doi:10.1056/NEJMoa2304194>
+  ([PubMed](https://pubmed.ncbi.nlm.nih.gov/37272516/),
+  [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC11445763/)). Key
+  secondary endpoint time to next intervention (TTNI): Figure 2B, Figure
+  3B, and Supplementary Appendix Table S2.
+- Cloughesy TF, van den Bent MJ, Touat M, et al. Vorasidenib in
+  IDH1-mutant or IDH2-mutant low-grade glioma (INDIGO): secondary and
+  exploratory endpoints from a randomised, double-blind,
+  placebo-controlled, phase 3 trial. *Lancet Oncol.*
+  2025;26(12):1665–1675. <doi:10.1016/S1470-2045(25)00472-3>.
+- ClinicalTrials.gov. Study of Vorasidenib (AG-881) in Participants With
+  Residual or Recurrent Grade 2 Glioma With an IDH1 or IDH2 Mutation
+  (INDIGO). Identifier:
+  [NCT04164901](https://clinicaltrials.gov/study/NCT04164901).
+
+### Statistical methodology
+
+- Kaplan EL, Meier P. Nonparametric estimation from incomplete
+  observations. *J Am Stat Assoc.* 1958;53(282):457–481.
+- Cox DR. Regression models and life-tables. *J R Stat Soc Series B.*
+  1972;34(2):187–220.
+- Efron B. The efficiency of Cox’s likelihood function for censored
+  data. *J Am Stat Assoc.* 1977;72(359):557–565.
+- Mantel N. Evaluation of survival data and two new rank order
+  statistics arising in its consideration. *Cancer Chemother Rep.*
+  1966;50(3):163–170.
+- Peto R, Peto J. Asymptotically efficient rank invariant test
+  procedures. *J R Stat Soc Series A.* 1972;135(2):185–207.
+- Schemper M, Smith TL. A note on quantifying follow-up in studies of
+  failure time. *Control Clin Trials.* 1996;17(4):343–346.
+- Kalbfleisch JD, Prentice RL. *The Statistical Analysis of Failure Time
+  Data.* 2nd ed. Hoboken, NJ: John Wiley & Sons; 2002.
+
+### Data standards and software ecosystem
+
+- Therneau TM. *A Package for Survival Analysis in R* (`survival`), used
+  via `tern`.
+- CDISC. [Analysis Data Model
+  (ADaM)](https://www.cdisc.org/standards/foundational/adam) (`ADSL` and
+  `ADTTE`) and [SDTM/ADaM Pilot
+  Project](https://github.com/cdisc-org/sdtm-adam-pilot-project).
+- [Pharmaverse](https://pharmaverse.org): `teal`, `teal.picks`,
+  `teal.widgets`, `tern`, and `rtables`.
