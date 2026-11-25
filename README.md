@@ -2,6 +2,8 @@
 
 [![R-CMD-check](https://github.com/ygma-bitc/tm.ttni/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ygma-bitc/tm.ttni/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/ygma-bitc/tm.ttni/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/ygma-bitc/tm.ttni/actions/workflows/pkgdown.yaml)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/tm.ttni)](https://cran.r-project.org/package=tm.ttni)
+[![CRAN monthly downloads](https://cranlogs.r-pkg.org/badges/tm.ttni)](https://cran.r-project.org/package=tm.ttni)
 
 Teal module and reusable table builder for **Time to Next Intervention (TTNI)** and related time-to-event endpoints.
 
